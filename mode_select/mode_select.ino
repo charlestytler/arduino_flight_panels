@@ -13,19 +13,44 @@ constexpr int kRotaryClkPin = 2;
 constexpr int kRotaryDtPin = 3;
 constexpr int kRotarySwPin = 4;
 
-void setup() {
+static int i = 0;
+const int led_order[4] = {kMasterCautionLedPin, kAA_LedPin, kNAV_LedPin, kAG_LedPin};
+
+void setup()
+{
     pinMode(kMasterCautionLedPin, OUTPUT);
     pinMode(kAA_LedPin, OUTPUT);
     pinMode(kNAV_LedPin, OUTPUT);
     pinMode(kAG_LedPin, OUTPUT);
+
+    pinMode(kMasterCautionSwPin, INPUT_PULLUP);
+    pinMode(kAA_SwPin, INPUT_PULLUP);
+    pinMode(kNAV_SwPin, INPUT_PULLUP);
+    pinMode(kAG_SwPin, INPUT_PULLUP);
+    pinMode(kRotarySwPin, INPUT_PULLUP);
+
+    digitalWrite(led_order[i], HIGH);
 }
 
-void loop() {
-    const int led_order[4] = {kMasterCautionLedPin, kAA_LedPin, kNAV_LedPin, kAG_LedPin};
-    for (int i=0; i<4; i++)
+void advance_led()
+{
+    digitalWrite(led_order[i], LOW);
+    if (i++ >= 4)
     {
-        digitalWrite(led_order[i], HIGH);
-        delay(1000);
-        digitalWrite(led_order[i], LOW);
+        i = 0;
+    }
+    digitalWrite(led_order[i], HIGH);
+    delay(1000); // Delay for dumb debounce.
+}
+
+void loop()
+{
+    if (!digitalRead(kMasterCautionSwPin) ||
+        !digitalRead(kAA_SwPin) ||
+        !digitalRead(kNAV_SwPin) ||
+        !digitalRead(kAG_SwPin) ||
+        !digitalRead(kRotarySwPin))
+    {
+        advance_led();
     }
 }
