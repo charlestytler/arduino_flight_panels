@@ -1,254 +1,156 @@
-#include <Encoder.h>
+
+#define DCSBIOS_DEFAULT_SERIAL
+#include <DcsBios.h>
+#include <Joystick.h>
+
+#include "JoystickEncoder.hh"
 
 /// Global frame time per loop() call.
 constexpr int kFrameTime_ms = 10;
 
 /// Pin assignments.
-enum PinID : byte
-{
-    kMasterCautionLed = 15,
-    kAA_Led = 14,
-    kNAV_Led = 16,
-    kAG_Led = 10,
+constexpr int kPinMasterCautionLed = 15;
+constexpr int kPinAA_Led = 14;
+constexpr int kPinNAV_Led = 16;
+constexpr int kPinAG_Led = 10;
 
-    kMasterCautionSw = 5,
-    kAA_Sw = 6,
-    kNAV_Sw = 7,
-    kAG_Sw = 8,
+constexpr int kPinMasterCautionSw = 5;
+constexpr int kPinAA_Sw = 6;
+constexpr int kPinNAV_Sw = 7;
+constexpr int kPinAG_Sw = 8;
 
-    kRotaryClk = 2,
-    kRotaryDt = 3,
-    kRotarySw = 4,
-};
+constexpr int kPinRotaryClk = 2;
+constexpr int kPinRotaryDt = 3;
+constexpr int kPinRotarySw = 4;
 
 /// Joystick button assignments.
-enum class ButtonID
+enum ButtonID : uint8_t
 {
-    kMasterCaution = 1,
-    kAA,
-    kNAV,
-    kAG,
-    kEncoderPress,
-    kEncoderLeft,
-    kEncoderRight
+    kButtonMasterCaution = 0,
+    kButtonAA,
+    kButtonNAV,
+    kButtonAG,
+    kButtonEncoderPress,
+    kButtonEncoderLeft,
+    kButtonEncoderRight
 };
 
-static int i = 0;
-const int led_order[4] = {kMasterCautionLed, kAA_Led, kNAV_Led, kAG_Led};
-long rotaryEncPosition = 0;
-static long prevEncPosition = 0;
+/// DCS-Bios connections.
 
-void advance_led()
-{
-    digitalWrite(led_order[i], LOW);
-    if (++i >= 4)
-    {
-        i = 0;
-    }
-    digitalWrite(led_order[i], HIGH);
-    //delay(50); // Delay for dumb debounce.
-}
+// A-10C
+DcsBios::LED masterCaution(0x1012, 0x0800, kPinMasterCautionLed);
+DcsBios::LED gunReady(0x1026, 0x8000, kPinAG_Led);
 
-void unadvance_led()
-{
-    digitalWrite(led_order[i], LOW);
-    if (--i < 0)
-    {
-        i = 3;
-    }
-    digitalWrite(led_order[i], HIGH);
-    //delay(50); // Delay for dumb debounce.
-}
+// AV8BNA
+DcsBios::LED mcLight(0x7860, 0x1000, kPinMasterCautionLed);
+DcsBios::LED vstolLight(0x7884, 0x0010, kPinAA_Led);
+DcsBios::LED navLight(0x7884, 0x0008, kPinNAV_Led);
+DcsBios::LED agLight(0x7884, 0x0020, kPinAG_Led);
 
-class JoystickEncoder
-{
-public:
-    explicit JoystickEncoder(PinID pin1, PinID pin2, ButtonID joyLeft, ButtonID joyRight) : encoder_monitor_(pin1, pin2), joy_left_{joyLeft}, joy_right_{joyRight}
-    {
-        encoder_monitor_.write(0);
-    }
+// F/A-18C
+DcsBios::LED masterCautionLt(0x7408, 0x0200, kPinMasterCautionLed);
+DcsBios::LED masterModeAaLt(0x740c, 0x0200, kPinAA_Led);
+DcsBios::LED masterModeAgLt(0x740c, 0x0400, kPinAG_Led);
 
-    void process_encoder()
-    {
-        const long encoder_position_reading = encoder_monitor_.read();
-        const int delta_position = encoder_position_reading - debounced_encoder_position_;
-        const bool debounce_has_settled = debounce_signal(encoder_position_reading, delta_position);
+// F-16
+DcsBios::LED lightMasterCaution(0x4472, 0x0800, kPinMasterCautionLed);
+DcsBios::LED icpAaModeBtn(0x4426, 0x0100, kPinAA_Led);
+DcsBios::LED icpAgModeBtn(0x4426, 0x0200, kPinAG_Led);
 
-        Serial.print("   Debounced: ");
-        Serial.print(debounced_encoder_position_);
-        Serial.print("   Delta: ");
-        Serial.print(delta_position);
-        Serial.print("   Settled: ");
-        Serial.print(debounce_has_settled);
-        Serial.print("   DebounceCounter: ");
-        Serial.print(debounce_counter_);
-        Serial.print("   NumFastTurns: ");
-        Serial.print(num_fast_turns_detected_);
+// F-5E
+//DcsBios::LED mcLight(0x7602, 0x0020, kMasterCautionLed);
+//DcsBios::LED leftLight(0x760e, 0x0800, kNAV_Led);
+//DcsBios::LED noseLight(0x760e, 0x0400, kAA_Led);
+//DcsBios::LED rightLight(0x760e, 0x1000, kAG_Led);
 
-        if (debounce_has_settled)
-        {
-            const int rounding_offset = kPositionTicksPerDetent_ / 2; // Better approximates rounding in integer division.
-            const int num_detents_turned = (abs(delta_position) + rounding_offset) / kPositionTicksPerDetent_;
-            if (num_detents_turned > num_fast_turns_detected_)
-            {
-                send_button_press(delta_position);
-            }
-            reset_fast_turns_detector_variables();
-        }
-        else
-        {
-            count_fast_turns_during_debounce(delta_position);
-        }
-        Serial.println();
-    }
+// KA-50
+DcsBios::LED scMasterCautionLed(0x1814, 0x0800, kPinMasterCautionLed);
 
-private:
-    bool debounce_signal(long new_reading, int delta_position)
-    {
-        bool debounce_has_settled = false;
-        if (new_reading != prev_encoder_position_reading_)
-        {
-            // Reset debounce counter.
-            debounce_counter_ = kDebounceFrames_;
-        }
+// L-39
+DcsBios::LED frontMasterCautionLamp(0x3336, 0x0002, kPinMasterCautionLed);
 
-        else
-        {
-            if (debounce_counter_ > 0)
-            {
-                debounce_counter_--;
-            }
-            else
-            {
-                // This is used to not trigger an output early, wait for more than one tick of change.
-                if (abs(delta_position) > 1)
-                {
-                    debounced_encoder_position_ = new_reading;
-                }
-                debounce_has_settled = true;
-            }
-        }
-        prev_encoder_position_reading_ = new_reading;
-        return debounce_has_settled;
-    }
+// M-2000
+DcsBios::LED apMasterAmbre(0x7200, 0x8000, kPinMasterCautionLed);
 
-    bool debounce_has_settled(int delta_position)
-    {
-        const bool min_delta_threshold_is_met = abs(delta_position) > 1;
-        const bool debounce_threshold_is_met = debounce_counter_ >= 3;
-        if (min_delta_threshold_is_met && debounce_threshold_is_met)
-        {
-            debounce_counter_ = 0;
-            return true;
-        }
-        return false;
-    }
+// UH-1H
+DcsBios::LED masterCautionInd(0x1416, 0x0100, kPinMasterCautionLed);
+DcsBios::LED armedInd(0x1416, 0x0010, kPinAG_Led);
 
-    void send_button_press(int delta_position)
-    {
-        if (delta_position > 0)
-        {
-            Serial.print("     RIGHT TURN");
-            advance_led();
-        }
-        else if (delta_position < 0)
-        {
-            Serial.print("     LEFT TURN");
-            unadvance_led();
-        }
-    }
+Joystick_ Joystick;
+JoystickEncoder rotaryEnc(kPinRotaryDt, kPinRotaryClk);
 
-    void count_fast_turns_during_debounce(int delta_position)
-    {
-        TurnDirection current_turn_direction;
-        if (delta_position > 0)
-        {
-            current_turn_direction = TurnDirection::kRight;
-        }
-        else if (delta_position < 0)
-        {
-            current_turn_direction = TurnDirection::kLeft;
-        }
-
-        // Reset fast turns count if turn direction (with respect to debounced position) changes.
-        if (current_turn_direction != last_turn_direction_)
-        {
-            num_fast_turns_detected_ = 0;
-        }
-        last_turn_direction_ = current_turn_direction;
-
-        const int next_fast_turn_threshold = (num_fast_turns_detected_ + 1) * kPositionTicksPerDetent_ + 1;
-        if (abs(delta_position) > next_fast_turn_threshold)
-        {
-            send_button_press(delta_position);
-            num_fast_turns_detected_++;
-        }
-    }
-
-    void reset_fast_turns_detector_variables()
-    {
-        num_fast_turns_detected_ = 0;
-        last_turn_direction_ = TurnDirection::kNone;
-    }
-
-    Encoder encoder_monitor_;               /// Instance of Encoder.
-    long debounced_encoder_position_{0};    /// Stored position of encoder.
-    long prev_encoder_position_reading_{0}; /// Undebounced position of encoder.
-    ButtonID joy_left_;                     /// Joystick button number to send as pressed for a left turn.
-    ButtonID joy_right_;                    /// Joystick button number to send as pressed for a right turn.
-
-    // Internal varialbes for debouncing.
-    int debounce_counter_{0}; /// Count-down counter used to debounce and suppress joystick output.
-
-    // Internal varialbes for detecting fast turns.
-    enum class TurnDirection
-    {
-        kNone,
-        kLeft,
-        kRight
-    };
-    int num_fast_turns_detected_{0};                           /// Keeps track of number of whole turns detected while debouncing.
-    TurnDirection last_turn_direction_ = TurnDirection::kNone; /// Keeps track of last turn direction in case of change of direction during debounce.
-
-    // Constant parameters.
-    static constexpr int kDebounceFrames_{3};         /// Parameter for number of frames the signal must be steady before considered debounced.
-    static constexpr int kPositionTicksPerDetent_{4}; /// Parameter for number of position ticks that represent one detent of rotary knob.
-};
-
-JoystickEncoder rotaryEnc(kRotaryDt, kRotaryClk, ButtonID::kEncoderLeft, ButtonID::kEncoderRight);
+// Timers for holding down rotary encoder turn for more than one frame.
+static int turn_left_hold_timer = 0;
+static int turn_right_hold_timer = 0;
+constexpr int rotary_turn_hold_frames = 2;
 
 void setup()
 {
-    pinMode(kMasterCautionLed, OUTPUT);
-    pinMode(kAA_Led, OUTPUT);
-    pinMode(kNAV_Led, OUTPUT);
-    pinMode(kAG_Led, OUTPUT);
+    DcsBios::setup();
+    Joystick.begin();
 
-    pinMode(kMasterCautionSw, INPUT_PULLUP);
-    pinMode(kAA_Sw, INPUT_PULLUP);
-    pinMode(kNAV_Sw, INPUT_PULLUP);
-    pinMode(kAG_Sw, INPUT_PULLUP);
-    pinMode(kRotarySw, INPUT_PULLUP);
+    pinMode(kPinMasterCautionLed, OUTPUT);
+    pinMode(kPinAA_Led, OUTPUT);
+    pinMode(kPinNAV_Led, OUTPUT);
+    pinMode(kPinAG_Led, OUTPUT);
 
-    digitalWrite(led_order[i], HIGH);
-
-    Serial.begin(9600);
+    pinMode(kPinMasterCautionSw, INPUT_PULLUP);
+    pinMode(kPinAA_Sw, INPUT_PULLUP);
+    pinMode(kPinNAV_Sw, INPUT_PULLUP);
+    pinMode(kPinAG_Sw, INPUT_PULLUP);
+    pinMode(kPinRotarySw, INPUT_PULLUP);
 }
 
 void loop()
 {
     unsigned long frame_start_time_ms = millis();
 
-    rotaryEnc.process_encoder();
+    DcsBios::loop();
 
-    if (!digitalRead(kMasterCautionSw) ||
-        !digitalRead(kAA_Sw) ||
-        !digitalRead(kNAV_Sw) ||
-        !digitalRead(kAG_Sw) ||
-        !digitalRead(kRotarySw))
+    const TurnDirection rotary_output = rotaryEnc.process_encoder();
+    if (rotary_output == TurnDirection::kLeft)
     {
-        advance_led();
-        delay(100);
+        turn_left_hold_timer = rotary_turn_hold_frames;
+    }
+    if (rotary_output == TurnDirection::kRight)
+    {
+        turn_right_hold_timer = rotary_turn_hold_frames;
+    }
+    bool turn_left = false;
+    bool turn_right = false;
+    if (turn_left_hold_timer > 0)
+    {
+        turn_left = true;
+        turn_left_hold_timer--;
+    }
+    if (turn_right_hold_timer > 0)
+    {
+        turn_right = true;
+        turn_right_hold_timer--;
+    }
+    Joystick.setButton(kButtonEncoderLeft, turn_left);
+    Joystick.setButton(kButtonEncoderRight, turn_right);
+
+    // Read all button switches.
+    const bool master_caution_is_pressed = !digitalRead(kPinMasterCautionSw);
+    const bool aa_is_pressed = !digitalRead(kPinAA_Sw);
+    const bool nav_is_pressed = !digitalRead(kPinNAV_Sw);
+    const bool ag_is_pressed = !digitalRead(kPinAG_Sw);
+    const bool rotary_is_pressed = !digitalRead(kPinRotarySw);
+    // Set values in joystick.
+    Joystick.setButton(kButtonMasterCaution, master_caution_is_pressed);
+    Joystick.setButton(kButtonAA, aa_is_pressed);
+    Joystick.setButton(kButtonNAV, nav_is_pressed);
+    Joystick.setButton(kButtonAG, ag_is_pressed);
+    Joystick.setButton(kButtonEncoderPress, rotary_is_pressed);
+
+    // Clear LEDs combo:
+    if (aa_is_pressed && ag_is_pressed)
+    {
+        digitalWrite(kPinMasterCautionLed, LOW);
+        digitalWrite(kPinAA_Led, LOW);
+        digitalWrite(kPinNAV_Led, LOW);
+        digitalWrite(kPinAG_Led, LOW);
     }
 
     while (millis() - frame_start_time_ms < kFrameTime_ms)
