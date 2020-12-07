@@ -79,11 +79,6 @@ DcsBios::LED armedInd(0x1416, 0x0010, kPinAG_Led);
 Joystick_ Joystick;
 JoystickEncoder rotaryEnc(kPinRotaryDt, kPinRotaryClk);
 
-// Timers for holding down rotary encoder turn for more than one frame.
-static int turn_left_hold_timer = 0;
-static int turn_right_hold_timer = 0;
-constexpr int rotary_turn_hold_frames = 2;
-
 void setup()
 {
     DcsBios::setup();
@@ -108,26 +103,8 @@ void loop()
     DcsBios::loop();
 
     const TurnDirection rotary_output = rotaryEnc.process_encoder();
-    if (rotary_output == TurnDirection::kLeft)
-    {
-        turn_left_hold_timer = rotary_turn_hold_frames;
-    }
-    if (rotary_output == TurnDirection::kRight)
-    {
-        turn_right_hold_timer = rotary_turn_hold_frames;
-    }
-    bool turn_left = false;
-    bool turn_right = false;
-    if (turn_left_hold_timer > 0)
-    {
-        turn_left = true;
-        turn_left_hold_timer--;
-    }
-    if (turn_right_hold_timer > 0)
-    {
-        turn_right = true;
-        turn_right_hold_timer--;
-    }
+    const bool turn_left = (rotary_output == TurnDirection::kLeft) ? true : false;
+    const bool turn_right = (rotary_output == TurnDirection::kRight) ? true : false;
     Joystick.setButton(kButtonEncoderLeft, turn_left);
     Joystick.setButton(kButtonEncoderRight, turn_right);
 
