@@ -58,10 +58,10 @@ DcsBios::LED icpAaModeBtn(0x4426, 0x0100, kPinAA_Led);
 DcsBios::LED icpAgModeBtn(0x4426, 0x0200, kPinAG_Led);
 
 // F-5E
-//DcsBios::LED mcLight(0x7602, 0x0020, kMasterCautionLed);
-//DcsBios::LED leftLight(0x760e, 0x0800, kNAV_Led);
-//DcsBios::LED noseLight(0x760e, 0x0400, kAA_Led);
-//DcsBios::LED rightLight(0x760e, 0x1000, kAG_Led);
+//DcsBios::LED mcLight(0x7602, 0x0020, kPinMasterCautionLed);
+//DcsBios::LED leftLight(0x760e, 0x0800, kPinNAV_Led);
+//DcsBios::LED noseLight(0x760e, 0x0400, kPinAA_Led);
+//DcsBios::LED rightLight(0x760e, 0x1000, kPinAG_Led);
 
 // KA-50
 DcsBios::LED scMasterCautionLed(0x1814, 0x0800, kPinMasterCautionLed);
@@ -75,6 +75,11 @@ DcsBios::LED apMasterAmbre(0x7200, 0x8000, kPinMasterCautionLed);
 // UH-1H
 DcsBios::LED masterCautionInd(0x1416, 0x0100, kPinMasterCautionLed);
 DcsBios::LED armedInd(0x1416, 0x0010, kPinAG_Led);
+
+// VIGGEN
+DcsBios::LED hojdLamp(0x4618, 0x1000, kPinAA_Led);
+DcsBios::LED attLamp(0x4618, 0x0800, kPinNAV_Led);
+DcsBios::LED spakLamp(0x4618, 0x0400, kPinAG_Led);
 
 Joystick_ Joystick;
 JoystickEncoder rotaryEnc(kPinRotaryDt, kPinRotaryClk);
