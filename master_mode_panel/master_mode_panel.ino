@@ -4,6 +4,7 @@
 #include <Joystick.h>
 
 #include "JoystickEncoder.hh"
+#include "ModuleLED.h"
 
 /// Global frame time per loop() call.
 constexpr int kFrameTime_ms = 10;
@@ -37,49 +38,52 @@ enum ButtonID : uint8_t
 
 /// DCS-Bios connections.
 
-// A-10C
-DcsBios::LED masterCaution(0x1012, 0x0800, kPinMasterCautionLed);
-DcsBios::LED gunReady(0x1026, 0x8000, kPinAG_Led);
+// Define all LEDs in an array to easily loop through them later.
+DcsBios::ModuleLED leds[] = {
+    DcsBios::ModuleLED("A-10C", 0x1012, 0x0800, kPinMasterCautionLed),
+    DcsBios::ModuleLED("A-10C", 0x1026, 0x8000, kPinAG_Led),
+    DcsBios::ModuleLED("A-10C_2", 0x1012, 0x0800, kPinMasterCautionLed),
+    DcsBios::ModuleLED("A-10C_2", 0x1026, 0x8000, kPinAG_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x7860, 0x1000, kPinMasterCautionLed),
+    DcsBios::ModuleLED("AV8BNA", 0x7884, 0x0010, kPinAA_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x7884, 0x0008, kPinNAV_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x7884, 0x0020, kPinAG_Led),
+    DcsBios::ModuleLED("FA-18C_hornet", 0x7408, 0x0200, kPinMasterCautionLed),
+    DcsBios::ModuleLED("FA-18C_hornet", 0x740c, 0x0200, kPinAA_Led),
+    DcsBios::ModuleLED("FA-18C_hornet", 0x740c, 0x0400, kPinAG_Led),
+    DcsBios::ModuleLED("F-14B", 0x12d4, 0x0080, kPinMasterCautionLed),
+    DcsBios::ModuleLED("F-14B", 0x127e, 0x0004, kPinAA_Led),
+    DcsBios::ModuleLED("F-14B", 0x127e, 0x0002, kPinNAV_Led),
+    DcsBios::ModuleLED("F-14B", 0x127e, 0x0008, kPinAG_Led),
+    DcsBios::ModuleLED("F-16C_50", 0x4472, 0x0800, kPinMasterCautionLed),
+    DcsBios::ModuleLED("F-16C_50", 0x4426, 0x0100, kPinAA_Led),
+    DcsBios::ModuleLED("F-16C_50", 0x4426, 0x0200, kPinAG_Led),
+    DcsBios::ModuleLED("F-5E-3", 0x7602, 0x0020, kPinMasterCautionLed),
+    DcsBios::ModuleLED("F-5E-3", 0x760e, 0x0800, kPinNAV_Led),
+    DcsBios::ModuleLED("F-5E-3", 0x760e, 0x0400, kPinAA_Led),
+    DcsBios::ModuleLED("F-5E-3", 0x760e, 0x1000, kPinAG_Led),
+    DcsBios::ModuleLED("Ka-50", 0x1814, 0x0800, kPinMasterCautionLed),
+    DcsBios::ModuleLED("L-39C", 0x3336, 0x0002, kPinMasterCautionLed),
+    DcsBios::ModuleLED("L-39ZA", 0x3336, 0x0002, kPinMasterCautionLed),
+    DcsBios::ModuleLED("M-2000C", 0x7200, 0x8000, kPinMasterCautionLed),
+    DcsBios::ModuleLED("UH-1H", 0x1416, 0x0100, kPinMasterCautionLed),
+    DcsBios::ModuleLED("UH-1H", 0x1416, 0x0010, kPinAG_Led),
+    DcsBios::ModuleLED("AJS37", 0x4618, 0x1000, kPinAA_Led),
+    DcsBios::ModuleLED("AJS37", 0x4618, 0x0800, kPinNAV_Led),
+    DcsBios::ModuleLED("AJS37", 0x4618, 0x0400, kPinAG_Led),
+};
 
-// AV8BNA
-DcsBios::LED mcLight(0x7860, 0x1000, kPinMasterCautionLed);
-DcsBios::LED vstolLight(0x7884, 0x0010, kPinAA_Led);
-DcsBios::LED navLight(0x7884, 0x0008, kPinNAV_Led);
-DcsBios::LED agLight(0x7884, 0x0020, kPinAG_Led);
-
-// F/A-18C
-DcsBios::LED masterCautionLt(0x7408, 0x0200, kPinMasterCautionLed);
-DcsBios::LED masterModeAaLt(0x740c, 0x0200, kPinAA_Led);
-DcsBios::LED masterModeAgLt(0x740c, 0x0400, kPinAG_Led);
-
-// F-16
-DcsBios::LED lightMasterCaution(0x4472, 0x0800, kPinMasterCautionLed);
-DcsBios::LED icpAaModeBtn(0x4426, 0x0100, kPinAA_Led);
-DcsBios::LED icpAgModeBtn(0x4426, 0x0200, kPinAG_Led);
-
-// F-5E
-//DcsBios::LED mcLight(0x7602, 0x0020, kPinMasterCautionLed);
-//DcsBios::LED leftLight(0x760e, 0x0800, kPinNAV_Led);
-//DcsBios::LED noseLight(0x760e, 0x0400, kPinAA_Led);
-//DcsBios::LED rightLight(0x760e, 0x1000, kPinAG_Led);
-
-// KA-50
-DcsBios::LED scMasterCautionLed(0x1814, 0x0800, kPinMasterCautionLed);
-
-// L-39
-DcsBios::LED frontMasterCautionLamp(0x3336, 0x0002, kPinMasterCautionLed);
-
-// M-2000
-DcsBios::LED apMasterAmbre(0x7200, 0x8000, kPinMasterCautionLed);
-
-// UH-1H
-DcsBios::LED masterCautionInd(0x1416, 0x0100, kPinMasterCautionLed);
-DcsBios::LED armedInd(0x1416, 0x0010, kPinAG_Led);
-
-// VIGGEN
-DcsBios::LED hojdLamp(0x4618, 0x1000, kPinAA_Led);
-DcsBios::LED attLamp(0x4618, 0x0800, kPinNAV_Led);
-DcsBios::LED spakLamp(0x4618, 0x0400, kPinAG_Led);
+// This callback function is called every aircraft change with the module name
+// as newValue.
+void onAcftNameChange(char *newValue)
+{
+    const size_t number_of_leds = sizeof(leds) / sizeof((leds)[0]);
+    for (size_t i = 0; i < number_of_leds; i++)
+    {
+        leds[i].set_active_according_to_module(newValue);
+    }
+}
+DcsBios::StringBuffer<24> AcftNameBuffer(0x0000, onAcftNameChange);
 
 Joystick_ Joystick;
 JoystickEncoder rotaryEnc(kPinRotaryDt, kPinRotaryClk);

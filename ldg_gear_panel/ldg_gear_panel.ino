@@ -1,6 +1,7 @@
 #define DCSBIOS_DEFAULT_SERIAL
-#include <DcsBios.h>
+
 #include "ModuleLED.h"
+#include <DcsBios.h>
 #include <Joystick.h>
 #include <PCF8574.h>
 
@@ -13,7 +14,8 @@ PCF8574 ioExpanderPins[] = {PCF8574(0x20), PCF8574(0x21), PCF8574(0x24)};
 const int numExpanderPinsUsed[] = {8, 8, 8};
 const int numExpanders = NELEMS(numExpanderPinsUsed);
 
-Joystick_ Joystick;
+Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_JOYSTICK, 64, 0, false, false, false, false, false, false,
+                   false, false, false, false, false);
 
 /// Pin assignments.
 constexpr int kPinLEngFire_Led = 18;
@@ -24,8 +26,9 @@ constexpr int kPinRHGear_Led = 4;
 constexpr int kPinEmerGear_Led = 7;
 
 const int buttonPins[] = {8, 9, 10, 16, 15, 19, 20, 21};
-// The following buttons (using Joystick ID) are identified as toggles which will add an additional button for their OFF condition.
-const int toggle2way[] = {21, 22, 23, 24};
+// The following buttons (using Joystick ID) are identified as toggles which will add an additional button for their OFF
+// condition.
+const int toggle2way[] = {8, 15, 16, 21, 22, 23, 24};
 const int toggle3way[][2] = {{1, 2}, {19, 20}, {13, 14}, {29, 30}, {31, 32}};
 
 /// DCS-Bios connections.
@@ -47,7 +50,25 @@ DcsBios::ModuleLED leds[] = {
     DcsBios::ModuleLED("A-10C_2", 0x1026, 0x1000, kPinLHGear_Led),
     DcsBios::ModuleLED("A-10C_2", 0x1026, 0x0800, kPinNoseGear_Led),
     DcsBios::ModuleLED("A-10C_2", 0x1026, 0x2000, kPinRHGear_Led),
-    DcsBios::ModuleLED("A-10C_2", 0x1026, 0x4000, kPinEmerGear_Led)};
+    DcsBios::ModuleLED("A-10C_2", 0x1026, 0x4000, kPinEmerGear_Led),
+    DcsBios::ModuleLED("AJS37", 0x4618, 0x2000, kPinLEngFire_Led),
+    DcsBios::ModuleLED("AJS37", 0x466e, 0x0800, kPinApuFire_Led),
+    DcsBios::ModuleLED("AJS37", 0x466c, 0x0020, kPinLHGear_Led),
+    DcsBios::ModuleLED("AJS37", 0x466c, 0x0010, kPinNoseGear_Led),
+    DcsBios::ModuleLED("AJS37", 0x466c, 0x0040, kPinRHGear_Led),
+    DcsBios::ModuleLED("AJS37", 0x466c, 0x0004, kPinEmerGear_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x7882, 0x0010, kPinLEngFire_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x7882, 0x0010, kPinApuFire_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x78f6, 0x0001, kPinLHGear_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x788a, 0x4000, kPinNoseGear_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x78f6, 0x0004, kPinRHGear_Led),
+    DcsBios::ModuleLED("AV8BNA", 0x7884, 0x1000, kPinEmerGear_Led),
+    DcsBios::ModuleLED("F-14B", 0x12d8, 0x1000, kPinLEngFire_Led),
+    DcsBios::ModuleLED("F-14B", 0x12d8, 0x0800, kPinApuFire_Led), // R Eng
+    DcsBios::ModuleLED("F-14B", 0x12e2, 0x1000, kPinLHGear_Led),
+    DcsBios::ModuleLED("F-14B", 0x12e2, 0x0400, kPinNoseGear_Led),
+    DcsBios::ModuleLED("F-14B", 0x12e2, 0x4000, kPinRHGear_Led),
+};
 
 void onAcftNameChange(char *newValue)
 {
@@ -102,15 +123,16 @@ void loop()
         }
     }
 
-    // Set button values for OFF states of toggle switches.
+    // Set button values for OFF states of toggle switches (Use index-1 because Joystick buttons are reported base 1 in
+    // Windows).
     for (size_t i = 0; i < NELEMS(toggle2way); i++)
     {
-        const bool toggleInactive = !inputPinStatus[toggle2way[i]];
+        const bool toggleInactive = !inputPinStatus[toggle2way[i] - 1];
         inputPinStatus[inputCount++] = toggleInactive ? true : false;
     }
     for (size_t i = 0; i < NELEMS(toggle3way); i++)
     {
-        const bool toggleInactive = (!inputPinStatus[toggle3way[i][0]] && !inputPinStatus[toggle3way[i][1]]);
+        const bool toggleInactive = !(inputPinStatus[toggle3way[i][0] - 1] || inputPinStatus[toggle3way[i][1] - 1]);
         inputPinStatus[inputCount++] = toggleInactive ? true : false;
     }
 
