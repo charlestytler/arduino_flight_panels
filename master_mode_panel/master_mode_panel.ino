@@ -6,6 +6,9 @@
 #include "JoystickEncoder.hh"
 #include "ModuleLED.h"
 
+#include "Wire.h"
+#include <SSD1311.h>
+
 /// Global frame time per loop() call.
 constexpr int kFrameTime_ms = 10;
 
@@ -15,14 +18,19 @@ constexpr int kPinAA_Led = 14;
 constexpr int kPinNAV_Led = 16;
 constexpr int kPinAG_Led = 10;
 
-constexpr int kPinMasterCautionSw = 5;
-constexpr int kPinAA_Sw = 6;
-constexpr int kPinNAV_Sw = 7;
-constexpr int kPinAG_Sw = 8;
+constexpr int kPinMasterCautionSw = 6;
+constexpr int kPinAA_Sw = 7;
+constexpr int kPinNAV_Sw = 8;
+constexpr int kPinAG_Sw = 9;
 
-constexpr int kPinRotaryClk = 2;
-constexpr int kPinRotaryDt = 3;
-constexpr int kPinRotarySw = 4;
+constexpr int kPinRotaryClk = 1;
+constexpr int kPinRotaryDt = 0;
+constexpr int kPinRotarySw = 5;
+
+constexpr int kOLEDVcc = 4;
+constexpr int kOLEDSDA = 2;
+constexpr int kOLEDSCL = 3;
+SSD1311 OLED;
 
 /// Joystick button assignments.
 enum ButtonID : uint8_t
@@ -82,6 +90,7 @@ void onAcftNameChange(char *newValue)
     {
         leds[i].set_active_according_to_module(newValue);
     }
+    OLED.powerMode(SSD1311_LCD_ON);
 }
 DcsBios::StringBuffer<24> AcftNameBuffer(0x0000, onAcftNameChange);
 
@@ -90,6 +99,14 @@ JoystickEncoder rotaryEnc(kPinRotaryDt, kPinRotaryClk);
 
 void setup()
 {
+    pinMode(kOLEDVcc, OUTPUT);
+    digitalWrite(kOLEDVcc, HIGH);
+    Wire.begin();
+    OLED.powerMode(SSD1311_LCD_ON);
+    OLED.clear();
+    OLED.sendString("OxN3368E456", 5, 1);
+    OLED.sendString("Base.ino", 5, 1);
+
     DcsBios::setup();
     Joystick.begin();
 
@@ -137,6 +154,7 @@ void loop()
         digitalWrite(kPinAA_Led, LOW);
         digitalWrite(kPinNAV_Led, LOW);
         digitalWrite(kPinAG_Led, LOW);
+        OLED.powerMode(SSD1311_LCD_OFF);
     }
 
     while (millis() - frame_start_time_ms < kFrameTime_ms)
