@@ -6,8 +6,7 @@
 #include "JoystickEncoder.hh"
 #include "ModuleLED.h"
 
-#include "Wire.h"
-#include <SSD1311.h>
+#include "UFC_OLED_Display.h"
 
 /// Global frame time per loop() call.
 constexpr int kFrameTime_ms = 10;
@@ -30,7 +29,6 @@ constexpr int kPinRotarySw = 5;
 constexpr int kOLEDVcc = 4;
 constexpr int kOLEDSDA = 2;
 constexpr int kOLEDSCL = 3;
-SSD1311 OLED;
 
 /// Joystick button assignments.
 enum ButtonID : uint8_t
@@ -81,15 +79,19 @@ DcsBios::ModuleLED leds[] = {
     DcsBios::ModuleLED("AJS37", 0x4618, 0x0400, kPinAG_Led),
 };
 
+static char current_module[32];
+
 // This callback function is called every aircraft change with the module name
 // as newValue.
 void onAcftNameChange(char *newValue)
 {
+    strcpy(current_module, newValue);
     const size_t number_of_leds = sizeof(leds) / sizeof((leds)[0]);
     for (size_t i = 0; i < number_of_leds; i++)
     {
         leds[i].set_active_according_to_module(newValue);
     }
+    OLED.clear();
     OLED.powerMode(SSD1311_LCD_ON);
 }
 DcsBios::StringBuffer<24> AcftNameBuffer(0x0000, onAcftNameChange);
@@ -101,12 +103,7 @@ void setup()
 {
     pinMode(kOLEDVcc, OUTPUT);
     digitalWrite(kOLEDVcc, HIGH);
-    Wire.begin();
-    OLED.powerMode(SSD1311_LCD_ON);
-    OLED.clear();
-    OLED.sendString("OxN3368E456", 5, 1);
-    OLED.sendString("Base.ino", 5, 1);
-
+    OLED_20x2_setup();
     DcsBios::setup();
     Joystick.begin();
 
