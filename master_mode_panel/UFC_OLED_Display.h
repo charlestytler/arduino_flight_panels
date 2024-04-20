@@ -228,3 +228,14 @@ void onPviLine2Apostrophe1Change(char *newValue) { OLED.sendString(newValue, 4, 
 DcsBios::StringBuffer<1> pviLine2Apostrophe1Buffer(0x1938, onPviLine2Apostrophe1Change);
 void onPviLine2Apostrophe2Change(char *newValue) { OLED.sendString(newValue, 7, 1); }
 DcsBios::StringBuffer<1> pviLine2Apostrophe2Buffer(0x193a, onPviLine2Apostrophe2Change);
+
+// UH-1H
+void onRaltDisplayStrChange(char *newValue)
+{
+    if (!strcmp(current_module, "UH-1H"))
+    {
+        OLED.sendString("RALT: ", 3, 1);
+        OLED.sendString(newValue, 9, 1);
+    }
+}
+DcsBios::StringBuffer<4> raltDisplayStrBuffer(0x14aa, onRaltDisplayStrChange);

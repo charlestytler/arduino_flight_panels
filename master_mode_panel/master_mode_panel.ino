@@ -74,6 +74,7 @@ DcsBios::ModuleLED leds[] = {
     DcsBios::ModuleLED("M-2000C", 0x7200, 0x8000, kPinMasterCautionLed),
     DcsBios::ModuleLED("UH-1H", 0x1416, 0x0100, kPinMasterCautionLed),
     DcsBios::ModuleLED("UH-1H", 0x1416, 0x0010, kPinAG_Led),
+    DcsBios::ModuleLED("AJS37", 0x4618, 0x1000, kPinMasterCautionLed),
     DcsBios::ModuleLED("AJS37", 0x4618, 0x1000, kPinAA_Led),
     DcsBios::ModuleLED("AJS37", 0x4618, 0x0800, kPinNAV_Led),
     DcsBios::ModuleLED("AJS37", 0x4618, 0x0400, kPinAG_Led),

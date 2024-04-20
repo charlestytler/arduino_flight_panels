@@ -14,8 +14,21 @@ PCF8574 ioExpanderPins[] = {PCF8574(0x20), PCF8574(0x21), PCF8574(0x24)};
 const int numExpanderPinsUsed[] = {8, 8, 8};
 const int numExpanders = NELEMS(numExpanderPinsUsed);
 
-Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_JOYSTICK, 64, 0, false, false, false, false, false, false,
-                   false, false, false, false, false);
+Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID,
+                   JOYSTICK_TYPE_JOYSTICK,
+                   64,
+                   0,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false);
 
 /// Pin assignments.
 constexpr int kPinLEngFire_Led = 18;
@@ -72,8 +85,7 @@ DcsBios::ModuleLED leds[] = {
 
 void onAcftNameChange(char *newValue)
 {
-    for (size_t i = 0; i < NELEMS(leds); i++)
-    {
+    for (size_t i = 0; i < NELEMS(leds); i++) {
         leds[i].set_active_according_to_module(newValue);
     }
 }
@@ -84,13 +96,11 @@ void setup()
     DcsBios::setup();
     Joystick.begin();
 
-    for (int i = 0; i < numExpanders; i++)
-    {
+    for (int i = 0; i < numExpanders; i++) {
         ioExpanderPins[i].begin();
     }
 
-    for (size_t i = 0; i < NELEMS(buttonPins); i++)
-    {
+    for (size_t i = 0; i < NELEMS(buttonPins); i++) {
         pinMode(buttonPins[i], INPUT_PULLUP);
     }
 }
@@ -103,47 +113,39 @@ void loop()
 
     // Read all button pins.
     int numInputPins = NELEMS(buttonPins) + NELEMS(toggle2way) + NELEMS(toggle3way);
-    for (int i = 0; i < numExpanders; i++)
-    {
+    for (int i = 0; i < numExpanders; i++) {
         numInputPins += numExpanderPinsUsed[i];
     }
     bool inputPinStatus[numInputPins];
 
     int inputCount = 0;
-    for (size_t i = 0; i < NELEMS(buttonPins); i++)
-    {
+    for (size_t i = 0; i < NELEMS(buttonPins); i++) {
         inputPinStatus[inputCount++] = !digitalRead(buttonPins[i]);
     }
-    for (int ioExpander = 0; ioExpander < numExpanders; ioExpander++)
-    {
+    for (int ioExpander = 0; ioExpander < numExpanders; ioExpander++) {
         uint8_t expanderPinStates = ioExpanderPins[ioExpander].read8();
-        for (int pin = 0; pin < numExpanderPinsUsed[ioExpander]; pin++)
-        {
+        for (int pin = 0; pin < numExpanderPinsUsed[ioExpander]; pin++) {
             inputPinStatus[inputCount++] = !(expanderPinStates & (1 << pin));
         }
     }
 
     // Set button values for OFF states of toggle switches (Use index-1 because Joystick buttons are reported base 1 in
     // Windows).
-    for (size_t i = 0; i < NELEMS(toggle2way); i++)
-    {
+    for (size_t i = 0; i < NELEMS(toggle2way); i++) {
         const bool toggleInactive = !inputPinStatus[toggle2way[i] - 1];
         inputPinStatus[inputCount++] = toggleInactive ? true : false;
     }
-    for (size_t i = 0; i < NELEMS(toggle3way); i++)
-    {
+    for (size_t i = 0; i < NELEMS(toggle3way); i++) {
         const bool toggleInactive = !(inputPinStatus[toggle3way[i][0] - 1] || inputPinStatus[toggle3way[i][1] - 1]);
         inputPinStatus[inputCount++] = toggleInactive ? true : false;
     }
 
     // Set Joystick button states.
-    for (int i = 0; i < numInputPins; i++)
-    {
+    for (int i = 0; i < numInputPins; i++) {
         Joystick.setButton(i, inputPinStatus[i]);
     }
 
-    while (millis() - frame_start_time_ms < kFrameTime_ms)
-    {
+    while (millis() - frame_start_time_ms < kFrameTime_ms) {
         // Wait.
     }
 }

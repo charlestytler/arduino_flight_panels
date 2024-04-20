@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:micro",
+    "sketch": "LDG_GEAR_PANEL_2\\LDG_GEAR_PANEL_2.ino",
+    "port": "COM14"
+}
