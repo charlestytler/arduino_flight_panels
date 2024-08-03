@@ -106,7 +106,6 @@ void setup()
 
     Wire.begin();
     for (int i = 0; i < NUM_GPIO_EXPANDERS; i++) {
-        delay(1000);
         io[i].setup(io_configs[i]);
     }
     turn_off_all_leds();
@@ -120,7 +119,6 @@ void loop()
     for (int i = 0; i < NUM_GPIO_EXPANDERS; i++) {
         io[i].loop(joystick);
     }
-    joystick.setButton(1, 1);
 
     joystick.sendState();
 
