@@ -2,8 +2,8 @@
 
 // #define DEBUG
 
+#include "DcsBios.h"
 #include "GpioExpander.h"
-#include <DcsBios.h>
 #include <Joystick.h>
 
 const uint8_t hidReportId = 100;
@@ -115,6 +115,8 @@ constexpr int LOOP_FRAME_TIME_MS = 10; // Run at 100Hz.
 void loop()
 {
     unsigned long frame_start_time_ms = millis();
+
+    DcsBios::loop();
 
     for (int i = 0; i < NUM_GPIO_EXPANDERS; i++) {
         io[i].loop(joystick);

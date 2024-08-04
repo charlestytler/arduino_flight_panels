@@ -1,6 +1,0 @@
-{
-    "board": "arduino:avr:micro",
-    "sketch": "left_console\\left_console.ino",
-    "port": "COM20",
-    "output": "./build"
-}
