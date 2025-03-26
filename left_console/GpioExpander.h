@@ -56,7 +56,7 @@ class GpioExpander
 
     void set_led(const uint8_t pin_id, const uint8_t value) { gpio_board_.write(pin_id, value); }
 
-    void set_all_led(const uint8_t value) { gpio_board_.write8(0); }
+    void set_all_led(const uint8_t value) { gpio_board_.write8(value); }
 
     void setup(GpioConfig &config)
     {
@@ -68,10 +68,11 @@ class GpioExpander
     {
         uint8_t pin_values = gpio_board_.readButton8();
 #ifdef DEBUG
-        Serial.print("Board ");
-        Serial.print(gpio_board_.getAddress(), HEX);
-        Serial.print("  Values: ");
-        Serial.println(pin_values, BIN);
+        Serial.print("B");
+        Serial.print(gpio_board_.getAddress(), BIN);
+        Serial.print(": ");
+        Serial.print(pin_values, BIN);
+        Serial.print(" ");
 #endif
 
         for (int i = 0; i < 8; i++) {

@@ -53,13 +53,14 @@ GpioConfig io_configs[NUM_GPIO_EXPANDERS] = { //
     [AFCS] = {0b111, {D, D, D, D, S, D, D, X}, btn_index += 8}};
 
 // Callback functions for specific LEDs.
-void set_ldg_gear_handle_led(int value) { io[LDG_GEAR_1].set_led(0, value); }
-void set_ldg_gear_left_led(int value) { io[LDG_GEAR_1].set_led(1, value); }
-void set_ldg_gear_right_led(int value) { io[LDG_GEAR_1].set_led(2, value); }
-void set_ldg_gear_nose_led(int value) { io[LDG_GEAR_1].set_led(3, value); }
 
-void set_flt_control_to_trim_led(int value) { io[FLT_CONTROL].set_led(0, value); }
-void set_eng_start_apu_led(int value) { io[ENG_START].set_led(7, value); }
+void set_ldg_gear_handle_led(unsigned int value) { io[LDG_GEAR_1].set_led(0, value); }
+void set_ldg_gear_left_led(unsigned int value) { io[LDG_GEAR_1].set_led(1, value); }
+void set_ldg_gear_right_led(unsigned int value) { io[LDG_GEAR_1].set_led(2, value); }
+void set_ldg_gear_nose_led(unsigned int value) { io[LDG_GEAR_1].set_led(3, value); }
+
+void set_flt_control_to_trim_led(unsigned int value) { io[FLT_CONTROL].set_led(0, value); }
+void set_eng_start_apu_led(unsigned int value) { io[ENG_START].set_led(7, value); }
 
 void turn_off_all_leds()
 {
@@ -89,6 +90,13 @@ DcsBios::IntegerBuffer F16LdgGearHandle(0x447c, 0x0002, 1, set_ldg_gear_handle_l
 DcsBios::IntegerBuffer F16LdgGearLeft(0x447a, 0x8000, 15, set_ldg_gear_left_led);
 DcsBios::IntegerBuffer F16LdgGearRight(0x447c, 0x0001, 0, set_ldg_gear_right_led);
 DcsBios::IntegerBuffer F16LdgGearNose(0x447a, 0x4000, 14, set_ldg_gear_nose_led);
+
+DcsBios::IntegerBuffer F15LgHndLBuffer(F_15E_F_LG_HND_L, set_ldg_gear_handle_led);
+DcsBios::IntegerBuffer F15LgLeftGLBuffer(F_15E_F_LG_LEFT_G_L, set_ldg_gear_left_led);
+DcsBios::IntegerBuffer F15LgRightGLBuffer(F_15E_F_LG_RIGHT_G_L, set_ldg_gear_right_led);
+DcsBios::IntegerBuffer F15LgNoseGLBuffer(F_15E_F_LG_NOSE_G_L, set_ldg_gear_nose_led);
+DcsBios::IntegerBuffer F15CasTrimLBuffer(F_15E_F_CAS_TRIM_L, set_flt_control_to_trim_led);
+DcsBios::IntegerBuffer F15GenStarterLBuffer(F_15E_F_GEN_STARTER_L, set_eng_start_apu_led);
 
 // Arduino Runtime
 
@@ -121,6 +129,9 @@ void loop()
     for (int i = 0; i < NUM_GPIO_EXPANDERS; i++) {
         io[i].loop(joystick);
     }
+#ifdef DEBUG
+    Serial.println(" ");
+#endif
 
     joystick.sendState();
 
