@@ -1,41 +1,99 @@
-#include <PCF8574.h>
+#define DCSBIOS_DEFAULT_SERIAL
 
-PCF8574 gpio22(0b100000 | 0b010);
-PCF8574 gpio20(0b100000 | 0b000);
+// #define DEBUG
+
+#include "DcsBios.h"
+#include "GpioExpander.h"
+#include <Joystick.h>
+
+const uint8_t hidReportId = 101;
+const uint8_t buttonCount = 64;
+const uint8_t hatSwitchCount = 0;
+Joystick_ joystick(hidReportId,
+                   JOYSTICK_TYPE_JOYSTICK,
+                   buttonCount,
+                   hatSwitchCount,
+                   false, // include axes
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false,
+                   false);
+
+// Arduino Pin Configuration
+
+int btn_index = 0;
+
+enum GpioExpanderNames {
+    ENGINE_PWR_1 = 0,
+    ENGINE_PWR_2,
+    NUM_GPIO_EXPANDERS // Maximum value of enum
+};
+
+GpioExpander io[NUM_GPIO_EXPANDERS];
+GpioConfig io_configs[NUM_GPIO_EXPANDERS] = {
+    //
+    [ENGINE_PWR_1] = {0b000, {X, X, X, X, X, X, X, X}, btn_index},
+    [ENGINE_PWR_2] = {0b100, {X, X, X, X, X, X, X, X}, btn_index += 8},
+};
+
+void turn_off_all_leds()
+{
+    for (int i = 0; i < NUM_GPIO_EXPANDERS; i++) {
+        io[i].set_all_led(0);
+    }
+}
+
+// DCS BIOS Configuration
+
+void onAcftNameChange(char *newValue) { turn_off_all_leds(); }
+DcsBios::StringBuffer<24> AcftNameBuffer(0x0000, onAcftNameChange);
+
+DcsBios::IntegerBuffer A10LdgGearHandle(0x1026, 0x4000, 14, set_caution_panel_led(1, 4, COLOR::GREEN));
+
+// Arduino Runtime
 
 void setup()
 {
+#ifdef DEBUG
     Serial.begin(115200);
+    delay(5000);
     Serial.println("START");
+#endif
 
-    gpio22.begin();
-    gpio22.setButtonMask(0b01111111);
-    gpio22.write(7, 0);
+    DcsBios::setup();
+    constexpr bool autoSendState = false;
+    joystick.begin(autoSendState);
 
-    gpio20.begin();
-    gpio20.setButtonMask(0b11111110);
-    gpio20.write(0, 0);
+    Wire.begin();
+    for (int i = 0; i < NUM_GPIO_EXPANDERS; i++) {
+        io[i].setup(io_configs[i]);
+    }
+    turn_off_all_leds();
 }
 
+constexpr int LOOP_FRAME_TIME_MS = 10; // Run at 100Hz.
 void loop()
 {
-    // unsigned long frame_start_time_ms = millis();
+    unsigned long frame_start_time_ms = millis();
 
-    uint8_t pins = gpio22.readButton8();
-    uint8_t pins_20 = gpio20.readButton8();
-    if (pins & 0b00010000) {
-        gpio22.write(7, 1);
-    } else {
-        gpio22.write(7, 0);
-    }
+    DcsBios::loop();
 
-    if (pins_20 & 0b00000010) {
-        gpio20.write(0, 0);
-    } else {
-        gpio20.write(0, 1);
+    for (int i = 0; i < NUM_GPIO_EXPANDERS; i++) {
+        io[i].loop(joystick);
     }
-    Serial.print(pins, BIN);
-    Serial.print("  ");
-    Serial.println(pins_20, BIN);
-    delay(10);
+#ifdef DEBUG
+    Serial.println(" ");
+#endif
+
+    joystick.sendState();
+
+    while (millis() - frame_start_time_ms < LOOP_FRAME_TIME_MS) {
+        // Wait.
+    }
 }
