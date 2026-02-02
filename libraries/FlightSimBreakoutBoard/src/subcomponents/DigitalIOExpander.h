@@ -4,27 +4,29 @@
 #include <PCF8575.h>
 #include <stdint.h>
 
-typedef struct {
-  uint8_t pcf_address; // Expected as binary of form 0b<A0><A1><A2>
-  uint16_t num_leds;
-  uint8_t joystick_start_index;
-} GpioConfig;
-
 class DigitalIOExpander {
 public:
-  DigitalIOExpander() : gpio_board_() {}
+  DigitalIOExpander();
 
-  void set_configuration(GpioConfig &config);
+  void setup(uint8_t address, int num_leds, int joystick_start_index);
 
+  // Set the value of a single LED
   void set_led(const uint8_t pin_id, const uint8_t value);
 
+  // Set the value of all LEDs
   void set_all_led(const uint16_t value);
 
-  void setup(GpioConfig &config);
+  // Reads all button inputs and sets them on the joystick,
+  // however requires an external call to joystick.sendState().
+  void readAndSetAllButtons(const Joystick_ &joystick);
 
-  void loop(Joystick_ &joystick);
+  // Loop function that monitors button inputs and sends a joystick
+  // state update upon a change.
+  void sendStateUpdateOnButtonChange(const Joystick_ &joystick);
 
 private:
   PCF8575 gpio_board_;
+  int num_led_outputs_;
   int joystick_start_index_;
+  int last_button_state_[16] = {0};
 };
