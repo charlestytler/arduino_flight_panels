@@ -20,9 +20,6 @@ compile:
 		--build-property micro.build.usb_product=$(USB_DEVICE_NAME) \
 		--build-property micro.build.pid=$(USB_PRODUCT_ID) \
 		.
-	@# Copy compile_commands for Neovim LSP
-	@cp $(BUILD_DIR)/compile_commands.json .
-	@echo "Done! compile_commands.json updated."
 
 upload: check-port
 	arduino-cli.exe upload -p $(PORT) --fqbn $(FQBN) --build-path $(BUILD_DIR) .
