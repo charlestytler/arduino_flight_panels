@@ -2,11 +2,20 @@
 
 #include "subcomponents/DigitalIOExpander.h"
 #include <Joystick.h>
-#include <vector>
+
+struct DigitalIOExpandersConfig {
+  uint8_t expander_i2c_addresses[8];
+  int num_expanders;
+  int num_leds;
+};
+
+struct FlightSimBreakoutBoardConfig {
+  DigitalIOExpandersConfig digital_io_expanders_config;
+};
 
 class FlightSimBreakoutBoard {
 public:
-  FlightSimBreakoutBoard();
+  explicit FlightSimBreakoutBoard(const FlightSimBreakoutBoardConfig &config);
 
   // Set the value of a single LED
   void setLED(int led_id, uint8_t value);
@@ -17,11 +26,14 @@ public:
 
   // Assumptions:
   // num_leds < number of digital IO expanders * NUM_PINS (16)
-  void setup(const std::vector<uint8_t> &expander_i2c_addresses, int num_leds);
+  void setup(const FlightSimBreakoutBoardConfig &config);
 
   void loop();
 
 private:
+  void setupDigitalIOExpanders(const DigitalIOExpandersConfig &config);
+
   Joystick_ joystick_;
-  std::vector<DigitalIOExpander> digital_io_expanders_;
+  DigitalIOExpander digital_io_expanders_[8]; // PCF8575 has max 8 I2C addresses
+  int num_digital_io_expanders_;
 };
