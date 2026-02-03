@@ -1,23 +1,32 @@
 FQBN = arduino:avr:micro
 LIBS = ./libraries
  # Default sketch for generation of compile_commands.json
-SKETCH = ./sketches/right_console
+DEFAULT_COMPILE_CMDS_SKETCH = ./sketches/right_console
 
-.PHONY: right-console left-console
+# Find all sketch directories automatically
+SKETCHES = $(patsubst sketches/%/,%,$(dir $(wildcard sketches/*/)))
 
-right-console:
-	$(MAKE) -C sketches/right_console upload PORT=$(PORT)
+.PHONY: all dump-spec $(SKETCHES)
 
-left-console:
-	$(MAKE) -C sketches/left_console upload PORT=$(PORT)
+# Examples:
+#
+# "make right_console" to compile sketch
+#
+# "make right_console-upload PORT=COM3" to upload sketch
+#
+$(SKETCHES):
+	$(MAKE) -C sketches/$@ compile
+
+%-upload:
+	$(MAKE) -C sketches/$* upload
 
 gen-compile-commands:
 	@echo "Generating compilation database for $(SKETCH)..."
 	arduino-cli compile --fqbn $(FQBN) \
 		--libraries $(LIBS) \
-		--build-path $(SKETCH)/build \
+		--build-path $(DEFAULT_COMPILE_CMDS_SKETCH)/build \
 		--only-compilation-database \
-		$(SKETCH)
+		$(DEFAULT_COMPILE_CMDS_SKETCH)
 	@# Move the generated file from the sketch's build folder to the root
-	@cp $(SKETCH)/build/compile_commands.json .
+	@cp $(DEFAULT_COMPILE_CMDS_SKETCH)/build/compile_commands.json .
 	@echo "Success! compile_commands.json is now at the project root."
