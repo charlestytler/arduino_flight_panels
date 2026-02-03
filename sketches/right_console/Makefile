@@ -1,6 +1,7 @@
 # Project Settings
-USB_DEVICE_NAME = "Right Console"
-# USB_VENDOR_ID = 0x2341
+USB_DEVICE_NAME = \"Right Console\"
+USB_MANUFACTURER = \"Arduino\"
+USB_VENDOR_ID = 0x2341   # Default
 USB_PRODUCT_ID = 0x8041  # Default for Arduino Micro is 0x8037
 FQBN = arduino:avr:micro
 LIBS = ../../libraries
@@ -17,16 +18,17 @@ compile:
 	arduino-cli.exe compile --fqbn $(FQBN) \
 		--libraries $(LIBS) \
 		--build-path $(BUILD_DIR) \
-		--build-property micro.build.usb_product=$(USB_DEVICE_NAME) \
-		--build-property micro.build.pid=$(USB_PRODUCT_ID) \
+		--build-property "build.usb_flags=-DUSB_VID=$(USB_VENDOR_ID) -DUSB_PID=$(USB_PRODUCT_ID) '-DUSB_MANUFACTURER=$(USB_MANUFACTURER)' '-DUSB_PRODUCT=$(USB_DEVICE_NAME)'" \
 		.
 
-upload: check-port
-	arduino-cli.exe upload -p $(PORT) --fqbn $(FQBN) --build-path $(BUILD_DIR) .
+upload: check-port compile
+	arduino-cli.exe upload -p $(PORT) \
+		--fqbn $(FQBN) \
+		--build-path $(BUILD_DIR) \
+		.
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -f compile_commands.json
 
 check-port:
 	@if [ -z "$(PORT)" ]; then \
