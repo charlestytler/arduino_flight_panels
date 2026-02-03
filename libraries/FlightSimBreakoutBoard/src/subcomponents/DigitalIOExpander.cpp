@@ -1,16 +1,6 @@
-#pragma once
-
 #include "DigitalIOExpander.h"
 
 DigitalIOExpander::DigitalIOExpander() : gpio_board_() {}
-
-void DigitalIOExpander::set_led(const uint8_t pin_id, const uint8_t value) {
-  gpio_board_.write(pin_id, value);
-}
-
-void DigitalIOExpander::set_all_led(const uint16_t value) {
-  gpio_board_.write16(value);
-}
 
 void DigitalIOExpander::setup(uint8_t address, int num_leds,
                               int joystick_start_index) {
@@ -37,6 +27,18 @@ void DigitalIOExpander::setup(uint8_t address, int num_leds,
   // Can run board after address and button_mask are set.
   gpio_board_.begin();
 }
+
+// ******* LED OUTPUT FUNCTIONS *******
+
+void DigitalIOExpander::set_led(uint8_t pin_id, uint8_t value) {
+  gpio_board_.write(pin_id, value);
+}
+
+void DigitalIOExpander::set_all_led(uint8_t value) {
+  gpio_board_.write16(value);
+}
+
+// ******* BUTTON INPUT FUNCTIONS *******
 
 void DigitalIOExpander::readAndSetAllButtons(Joystick_ &joystick) {
   const uint16_t pin_values = gpio_board_.readButton16();
