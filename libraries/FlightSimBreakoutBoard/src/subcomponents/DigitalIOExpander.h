@@ -22,11 +22,11 @@ public:
 
   // Reads all button inputs and sets them on the joystick,
   // however requires an external call to joystick.sendState().
-  void readAndSetAllButtons(const Joystick_ &joystick);
+  void readAndSetAllButtons(Joystick_ &joystick);
 
   // Loop function that monitors button inputs and sends a joystick
   // state update upon a change.
-  void sendStateUpdateOnButtonChange(const Joystick_ &joystick);
+  void sendStateUpdateOnButtonChange(Joystick_ &joystick);
 
 private:
   PCF8575 gpio_board_;

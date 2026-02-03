@@ -40,7 +40,7 @@ void DigitalIOExpander::set_all_led(uint8_t value) {
 
 // ******* BUTTON INPUT FUNCTIONS *******
 
-void DigitalIOExpander::readAndSetAllButtons(const Joystick_ &joystick) {
+void DigitalIOExpander::readAndSetAllButtons(Joystick_ &joystick) {
   const uint16_t pin_values = gpio_board_.readButton16();
 
   constexpr int NUM_PINS = 16;
@@ -50,8 +50,7 @@ void DigitalIOExpander::readAndSetAllButtons(const Joystick_ &joystick) {
   }
 }
 
-void DigitalIOExpander::sendStateUpdateOnButtonChange(
-    const Joystick_ &joystick) {
+void DigitalIOExpander::sendStateUpdateOnButtonChange(Joystick_ &joystick) {
   const uint16_t pin_values = gpio_board_.readButton16();
 
   constexpr int NUM_PINS = 16;
