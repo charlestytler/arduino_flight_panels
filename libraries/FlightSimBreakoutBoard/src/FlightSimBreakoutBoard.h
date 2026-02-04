@@ -25,7 +25,7 @@ public:
   void turnOnAllLEDs();
 
   // Assumptions:
-  // num_leds < number of digital IO expanders * NUM_PINS (16)
+  // num_leds < number of digital IO expanders * NUM_PINS_PER_IO_EXPANDER (16)
   void setup(const FlightSimBreakoutBoardConfig &config);
 
   void loop();

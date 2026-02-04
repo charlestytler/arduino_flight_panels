@@ -16,10 +16,9 @@ void DigitalIOExpander::setup(uint8_t address, int num_leds,
   for LED outputs).
   */
   uint16_t button_mask = 0U;
-  constexpr int NUM_PINS = 16;
-  for (int i = 0; i < NUM_PINS; i++) {
+  for (int i = 0; i < NUM_PINS_PER_IO_EXPANDER; i++) {
     // LED pins are assigned to the end of the pin mask.
-    bool is_led = NUM_PINS - i <= num_led_outputs_;
+    bool is_led = NUM_PINS_PER_IO_EXPANDER - i <= num_led_outputs_;
     bitWrite(button_mask, i, is_led ? 0 : 1);
   }
   gpio_board_.setButtonMask(button_mask);
@@ -43,8 +42,7 @@ void DigitalIOExpander::set_all_led(uint8_t value) {
 void DigitalIOExpander::readAndSetAllButtons(Joystick_ &joystick) {
   const uint16_t pin_values = gpio_board_.readButton16();
 
-  constexpr int NUM_PINS = 16;
-  for (int i = 0; i < NUM_PINS - num_led_outputs_; i++) {
+  for (int i = 0; i < NUM_PINS_PER_IO_EXPANDER - num_led_outputs_; i++) {
     last_button_state_[i] = bitRead(pin_values, i);
     joystick.setButton(joystick_start_index_ + i, last_button_state_[i]);
   }
@@ -53,8 +51,7 @@ void DigitalIOExpander::readAndSetAllButtons(Joystick_ &joystick) {
 void DigitalIOExpander::sendStateUpdateOnButtonChange(Joystick_ &joystick) {
   const uint16_t pin_values = gpio_board_.readButton16();
 
-  constexpr int NUM_PINS = 16;
-  for (int i = 0; i < NUM_PINS - num_led_outputs_; i++) {
+  for (int i = 0; i < NUM_PINS_PER_IO_EXPANDER - num_led_outputs_; i++) {
     const int current_button_state = bitRead(pin_values, i);
     // Only send update if button state has changed.
     if (current_button_state != last_button_state_[i]) {

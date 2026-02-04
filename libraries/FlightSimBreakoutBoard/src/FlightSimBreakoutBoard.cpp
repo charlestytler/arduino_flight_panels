@@ -9,12 +9,11 @@ FlightSimBreakoutBoard::FlightSimBreakoutBoard(
                 false, false, false) {}
 
 void FlightSimBreakoutBoard::setLED(int led_id, uint8_t value) {
-  constexpr int NUM_PINS = 16;
-  const int expander_number = led_id / NUM_PINS;
-  const int pin_number = led_id % NUM_PINS;
+  const int expander_number = led_id / NUM_PINS_PER_IO_EXPANDER;
+  const int pin_number = led_id % NUM_PINS_PER_IO_EXPANDER;
   // LEDs are ordered from last pin back, so reverse order for indexing.
   const int expander_id = num_digital_io_expanders_ - 1 - expander_number;
-  const int pin_id = NUM_PINS - 1 - pin_number;
+  const int pin_id = NUM_PINS_PER_IO_EXPANDER - 1 - pin_number;
 
   digital_io_expanders_[expander_id].set_led(pin_id, value);
 }
@@ -53,8 +52,6 @@ void FlightSimBreakoutBoard::loop() {
 void FlightSimBreakoutBoard::setupDigitalIOExpanders(
     const DigitalIOExpandersConfig &config) {
   num_digital_io_expanders_ = config.num_expanders;
-
-  constexpr int NUM_PINS = 16;
   int joystick_start_index_for_current_expander = 0;
 
   // Iterate backwards through the expanders count to allocate the number of
@@ -64,7 +61,7 @@ void FlightSimBreakoutBoard::setupDigitalIOExpanders(
   int backwards_idx = num_digital_io_expanders_ - 1;
   while (num_total_leds_to_allocate > 0) {
     num_leds_per_expander[backwards_idx] =
-        min(NUM_PINS, num_total_leds_to_allocate);
+        min(NUM_PINS_PER_IO_EXPANDER, num_total_leds_to_allocate);
     num_total_leds_to_allocate -= num_leds_per_expander[backwards_idx];
     backwards_idx--;
   }
@@ -75,7 +72,7 @@ void FlightSimBreakoutBoard::setupDigitalIOExpanders(
                                    num_leds_per_expander[i],
                                    joystick_start_index_for_current_expander);
 
-    joystick_start_index_for_current_expander += NUM_PINS;
+    joystick_start_index_for_current_expander += NUM_PINS_PER_IO_EXPANDER;
 
     digital_io_expanders_[i].readAndSetAllButtons(joystick_);
   }

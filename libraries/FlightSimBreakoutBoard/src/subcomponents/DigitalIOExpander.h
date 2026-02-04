@@ -4,6 +4,8 @@
 #include <PCF8575.h>
 #include <stdint.h>
 
+#define NUM_PINS_PER_IO_EXPANDER 16
+
 class DigitalIOExpander {
 public:
   DigitalIOExpander();
