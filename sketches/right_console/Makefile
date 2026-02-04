@@ -27,6 +27,10 @@ upload: check-port compile
 		--build-path $(BUILD_DIR) \
 		.
 
+BAUD_RATE = 9600
+monitor:
+	arduino-cli.exe monitor -p $(PORT) --config $(BAUD_RATE)
+
 clean:
 	rm -rf $(BUILD_DIR)
 

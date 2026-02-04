@@ -4,8 +4,8 @@ DigitalIOExpander::DigitalIOExpander() : gpio_board_() {}
 
 void DigitalIOExpander::setup(uint8_t address, int num_leds,
                               int joystick_start_index) {
-  const uint8_t pcf_id = 0b100000 | address;
-  gpio_board_.setAddress(pcf_id);
+  gpio_board_.setAddress(address);
+
   num_led_outputs_ = num_leds;
   joystick_start_index_ = joystick_start_index;
 

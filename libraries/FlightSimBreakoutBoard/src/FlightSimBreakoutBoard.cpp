@@ -39,6 +39,7 @@ void FlightSimBreakoutBoard::setup(const FlightSimBreakoutBoardConfig &config) {
   setupDigitalIOExpanders(config.digital_io_expanders_config);
 
   // Send intial state of all buttons, and turn off all LEDs.
+  delay(5000); // Wait for all USB handshakes to complete.
   joystick_.sendState();
   turnOffAllLEDs();
 }
@@ -51,6 +52,8 @@ void FlightSimBreakoutBoard::loop() {
 
 void FlightSimBreakoutBoard::setupDigitalIOExpanders(
     const DigitalIOExpandersConfig &config) {
+  num_digital_io_expanders_ = config.num_expanders;
+
   constexpr int NUM_PINS = 16;
   int joystick_start_index_for_current_expander = 0;
 
@@ -58,7 +61,7 @@ void FlightSimBreakoutBoard::setupDigitalIOExpanders(
   // LEDs on each expander.
   int num_leds_per_expander[8] = {0};
   int num_total_leds_to_allocate = config.num_leds;
-  int backwards_idx = config.num_expanders - 1;
+  int backwards_idx = num_digital_io_expanders_ - 1;
   while (num_total_leds_to_allocate > 0) {
     num_leds_per_expander[backwards_idx] =
         min(NUM_PINS, num_total_leds_to_allocate);
@@ -66,7 +69,7 @@ void FlightSimBreakoutBoard::setupDigitalIOExpanders(
     backwards_idx--;
   }
 
-  for (int i = 0; i < config.num_expanders; i++) {
+  for (int i = 0; i < num_digital_io_expanders_; i++) {
     digital_io_expanders_[i] = DigitalIOExpander();
     digital_io_expanders_[i].setup(config.expander_i2c_addresses[i],
                                    num_leds_per_expander[i],
