@@ -16,6 +16,7 @@ all: compile
 compile:
 	@echo "Compiling $(notdir $(CURDIR))..."
 	arduino-cli.exe compile --fqbn $(FQBN) \
+		--warnings all \
 		--libraries $(LIBS) \
 		--build-path $(BUILD_DIR) \
 		--build-property "build.usb_flags=-DUSB_VID=$(USB_VENDOR_ID) -DUSB_PID=$(USB_PRODUCT_ID) '-DUSB_MANUFACTURER=$(USB_MANUFACTURER)' '-DUSB_PRODUCT=$(USB_DEVICE_NAME)'" \
