@@ -23,7 +23,7 @@ class DigitalIOExpander {
 public:
   DigitalIOExpander();
 
-  void setup(uint8_t address, int num_leds, int joystick_start_index);
+  void setup(uint8_t address, uint8_t num_leds, uint8_t joystick_start_index);
 
   // ******* LED OUTPUT FUNCTIONS *******
 
@@ -45,7 +45,7 @@ public:
 
 private:
   PCF8575 gpio_board_;
-  int num_led_outputs_;
-  int joystick_start_index_;
-  int last_button_state_[16] = {0};
+  uint8_t num_led_outputs_;
+  uint8_t joystick_start_index_;
+  uint8_t last_button_state_[16] = {0};
 };

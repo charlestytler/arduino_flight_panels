@@ -8,8 +8,8 @@
 
 struct DigitalIOExpandersConfig {
   uint8_t expander_i2c_addresses[8];
-  int num_expanders;
-  int num_leds;
+  uint8_t num_expanders;
+  uint8_t num_leds;
 };
 
 struct FlightSimBreakoutBoardConfig {
@@ -22,7 +22,7 @@ public:
   explicit FlightSimBreakoutBoard(const FlightSimBreakoutBoardConfig &config);
 
   // Set the value of a single LED
-  void setLED(int led_id, uint8_t value);
+  void setLED(uint8_t led_id, uint8_t value);
 
   // Set the value of all LEDs
   void turnOffAllLEDs();
@@ -39,6 +39,6 @@ private:
 
   Joystick_ joystick_;
   DigitalIOExpander digital_io_expanders_[MAX_NUM_DIGITAL_IO_EXPANDERS];
-  int num_digital_io_expanders_;
+  uint8_t num_digital_io_expanders_;
   AnalogMultiplexer analog_multiplexer_;
 };

@@ -12,8 +12,8 @@ struct MuxChannelSelectPins {
 
 struct AnalogMultiplexerConfig {
   MuxChannelSelectPins pins;
-  int num_mux_inputs;
-  int mux_input_pins[MAX_NUM_MULTIPLEXERS];
+  uint8_t num_mux_inputs;
+  uint8_t mux_input_pins[MAX_NUM_MULTIPLEXERS];
 };
 
 class AnalogMultiplexer {
