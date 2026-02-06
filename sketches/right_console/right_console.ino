@@ -9,7 +9,8 @@ constexpr FlightSimBreakoutBoardConfig config{
         },
     .analog_multiplexer_config = {
         .pins = {.s0 = 15, .s1 = 14, .s2 = 16, .s3 = 10}, // Channel Select pins
-        .num_mux_inputs = 4,
+        .num_mux_inputs = 1,
+        .mux_input_pins = {A0},
     }};
 
 // const FlightSimBreakoutBoardConfig config{
@@ -35,7 +36,7 @@ void setup() {
   flightSimBreakoutBoard.setup(config);
 }
 
-void loop() { flightSimBreakoutBoard.loop(); }
+void loop() { flightSimBreakoutBoard.loop(config); }
 
 //
 //

@@ -46,11 +46,12 @@ void FlightSimBreakoutBoard::turnOnAllLEDs() {
   }
 }
 
-void FlightSimBreakoutBoard::loop() {
+void FlightSimBreakoutBoard::loop(const FlightSimBreakoutBoardConfig &config) {
   for (int i = 0; i < num_digital_io_expanders_; i++) {
     digital_io_expanders_[i].sendStateUpdateOnButtonChange(joystick_);
   }
-  analog_multiplexer_.sendStateUpdateOnAnalogInputChange();
+  analog_multiplexer_.sendStateUpdateOnAnalogInputChange(
+      config.analog_multiplexer_config);
 }
 
 void FlightSimBreakoutBoard::setupDigitalIOExpanders(

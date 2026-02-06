@@ -32,11 +32,10 @@ public:
   // num_leds < number of digital IO expanders * NUM_PINS_PER_IO_EXPANDER (16)
   void setup(const FlightSimBreakoutBoardConfig &config);
 
-  void loop();
+  void loop(const FlightSimBreakoutBoardConfig &config);
 
 private:
   void setupDigitalIOExpanders(const DigitalIOExpandersConfig &config);
-  void setupAnalogMultiplexer();
 
   Joystick_ joystick_;
   DigitalIOExpander digital_io_expanders_[MAX_NUM_DIGITAL_IO_EXPANDERS];
