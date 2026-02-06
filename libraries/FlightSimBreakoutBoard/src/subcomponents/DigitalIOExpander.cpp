@@ -55,9 +55,13 @@ void DigitalIOExpander::sendStateUpdateOnButtonChange(Joystick_ &joystick) {
     const int current_button_state = bitRead(pin_values, i);
     // Only send update if button state has changed.
     if (current_button_state != last_button_state_[i]) {
-      joystick.setButton(joystick_start_index_ + i, current_button_state);
       // Send update immediately upon button state change.
+      joystick.setButton(joystick_start_index_ + i, current_button_state);
       joystick.sendState();
+
+      // Also send update over serial.
+      Serial.println("BTN" + String(i) + "," + String(current_button_state));
+
       last_button_state_[i] = current_button_state;
     }
   }

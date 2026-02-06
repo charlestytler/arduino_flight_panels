@@ -3,10 +3,26 @@
 FlightSimBreakoutBoard::FlightSimBreakoutBoard(
     const FlightSimBreakoutBoardConfig &config)
     : joystick_(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_JOYSTICK,
-                config.digital_io_expanders_config.num_expanders * 16 -
+                config.digital_io_expanders_config.num_expanders *
+                        NUM_PINS_PER_IO_EXPANDER -
                     config.digital_io_expanders_config.num_leds,
                 0, false, false, false, false, false, false, false, false,
-                false, false, false) {}
+                false, false, false),
+      analog_multiplexer_(config.analog_multiplexer_config) {}
+
+void FlightSimBreakoutBoard::setup(const FlightSimBreakoutBoardConfig &config) {
+  constexpr bool AUTO_SEND_STATE = false;
+  joystick_.begin(AUTO_SEND_STATE);
+
+  Wire.begin();
+  setupDigitalIOExpanders(config.digital_io_expanders_config);
+  // Analog multiplexer needs no setup.
+
+  // Send intial state of all buttons, and turn off all LEDs.
+  delay(5000); // Wait for all USB handshakes to complete.
+  joystick_.sendState();
+  turnOffAllLEDs();
+}
 
 void FlightSimBreakoutBoard::setLED(int led_id, uint8_t value) {
   const int expander_number = led_id / NUM_PINS_PER_IO_EXPANDER;
@@ -30,23 +46,11 @@ void FlightSimBreakoutBoard::turnOnAllLEDs() {
   }
 }
 
-void FlightSimBreakoutBoard::setup(const FlightSimBreakoutBoardConfig &config) {
-  constexpr bool AUTO_SEND_STATE = false;
-  joystick_.begin(AUTO_SEND_STATE);
-
-  Wire.begin();
-  setupDigitalIOExpanders(config.digital_io_expanders_config);
-
-  // Send intial state of all buttons, and turn off all LEDs.
-  delay(5000); // Wait for all USB handshakes to complete.
-  joystick_.sendState();
-  turnOffAllLEDs();
-}
-
 void FlightSimBreakoutBoard::loop() {
   for (int i = 0; i < num_digital_io_expanders_; i++) {
     digital_io_expanders_[i].sendStateUpdateOnButtonChange(joystick_);
   }
+  analog_multiplexer_.sendStateUpdateOnAnalogInputChange();
 }
 
 void FlightSimBreakoutBoard::setupDigitalIOExpanders(
