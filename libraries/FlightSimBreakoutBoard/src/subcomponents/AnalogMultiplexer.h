@@ -32,15 +32,3 @@ private:
   int analog_inputs_last_sent_[MAX_NUM_MULTIPLEXERS *
                                NUM_PINS_PER_MULTIPLEXER] = {0};
 };
-
-// namespace AnalogMultiplexer {
-//
-// void init(int analog_inputs_raw[], int analog_inputs_filtered[],
-//           const int num_inputs);
-//
-// void readAnalogInputs(HC4067 &multiplexer, int &analog_inputs_raw,
-//                       const int &mux_input_pins, int num_mux_inputs);
-//
-// void filterAnalogInputs(int &analog_inputs_raw, int &analog_inputs_filtered,
-//                         int num_inputs);
-// } // namespace AnalogMultiplexer
