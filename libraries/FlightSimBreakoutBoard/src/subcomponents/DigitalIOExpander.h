@@ -6,6 +6,19 @@
 
 #define NUM_PINS_PER_IO_EXPANDER 16
 
+/* I2C addresses based on Address Pins:
+ *
+ * ADDR  A0 A1 A2
+ * 0x20  L  L  L
+ * 0x21  H  L  L
+ * 0x22  L  H  L
+ * 0x23  H  H  L
+ * 0x24  L  L  H
+ * 0x25  H  L  H
+ * 0x26  L  H  H
+ * 0x27  H  H  H
+ */
+
 class DigitalIOExpander {
 public:
   DigitalIOExpander();
