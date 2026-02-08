@@ -25,6 +25,8 @@ public:
   void
   sendStateUpdateOnAnalogInputChange(const AnalogMultiplexerConfig &config);
 
+  void loop(const AnalogMultiplexerConfig &config);
+
 private:
   HC4067 multiplexer_driver_;
   int analog_inputs_filtered_[MAX_NUM_MULTIPLEXERS * NUM_PINS_PER_MULTIPLEXER] =

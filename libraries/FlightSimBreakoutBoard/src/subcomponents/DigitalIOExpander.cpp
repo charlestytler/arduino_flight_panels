@@ -60,7 +60,8 @@ void DigitalIOExpander::sendStateUpdateOnButtonChange(Joystick_ &joystick) {
       joystick.sendState();
 
       // Also send update over serial.
-      Serial.println("BTN" + String(i) + "," + String(current_button_state));
+      Serial.println("BTN" + String(joystick_start_index_ + i) + "," +
+                     String(current_button_state));
 
       last_button_state_[i] = current_button_state;
     }

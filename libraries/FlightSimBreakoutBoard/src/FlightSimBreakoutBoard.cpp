@@ -50,8 +50,7 @@ void FlightSimBreakoutBoard::loop(const FlightSimBreakoutBoardConfig &config) {
   for (uint8_t i = 0; i < num_digital_io_expanders_; i++) {
     digital_io_expanders_[i].sendStateUpdateOnButtonChange(joystick_);
   }
-  analog_multiplexer_.sendStateUpdateOnAnalogInputChange(
-      config.analog_multiplexer_config);
+  analog_multiplexer_.loop(config.analog_multiplexer_config);
 }
 
 void FlightSimBreakoutBoard::setupDigitalIOExpanders(

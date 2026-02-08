@@ -3,8 +3,8 @@
 constexpr FlightSimBreakoutBoardConfig config{
     .digital_io_expanders_config =
         {
-            .expander_i2c_addresses = {0x20},
-            .num_expanders = 1, // num_expanders
+            .expander_i2c_addresses = {0x20, 0x21, 0x22},
+            .num_expanders = 3, // num_expanders
             .num_leds = 0,      // num_leds
         },
     .analog_multiplexer_config = {

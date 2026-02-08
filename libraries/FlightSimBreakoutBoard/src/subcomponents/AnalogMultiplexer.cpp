@@ -41,3 +41,8 @@ void AnalogMultiplexer::sendStateUpdateOnAnalogInputChange(
     }
   }
 }
+
+void AnalogMultiplexer::loop(const AnalogMultiplexerConfig &config) {
+  readAnalogInputs(config);
+  sendStateUpdateOnAnalogInputChange(config);
+}
